@@ -6,7 +6,16 @@ Custom Home Assistant integration for WhatWatt Go devices that read data from el
 
 This integration allows Home Assistant to receive and display data from WhatWatt Go devices via MQTT. It provides sensors for power consumption, power generation, energy usage, and voltage levels for all three phases.
 
-![WhatWatt Logo](https://via.placeholder.com/200x100?text=WhatWatt)
+![WhatWatt Logo](https://avatars.githubusercontent.com/u/201613898?s=200&v=4)
+
+## Requirements
+
+- **MQTT Integration**: This integration requires the MQTT integration to be set up in Home Assistant. If you don't have MQTT configured:
+  1. Go to Settings > Devices & Services > Add Integration
+  2. Search for "MQTT" and follow the setup instructions
+  3. If you're using Home Assistant OS, we recommend using the Mosquitto MQTT Broker add-on
+
+- **WhatWatt Go Device**: Your device must be configured to publish data to your MQTT broker
 
 ## Features
 
@@ -22,7 +31,7 @@ This integration allows Home Assistant to receive and display data from WhatWatt
 1. Open HACS in your Home Assistant instance
 2. Go to "Integrations"
 3. Click the three dots in the top right corner and select "Custom repositories"
-4. Add the URL `https://github.com/vestiacom/whatwatt-home-asistance-integration` with category "Integration"
+4. Add the URL `https://github.com/whatwatt-ch/home-assistant-integration` with category "Integration"
 5. Click "Add"
 6. Search for "WhatWatt" in the integrations tab
 7. Click "Download"
@@ -32,8 +41,8 @@ This integration allows Home Assistant to receive and display data from WhatWatt
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/vestiacom/whatwatt-home-asistance-integration.git
-   cd whatwatt-home-asistance-integration
+   git clone https://github.com/whatwatt-ch/home-assistant-integration.git
+   cd home-assistant-integration
    ```
 
 2. Run the installation script:
@@ -54,6 +63,12 @@ This integration allows Home Assistant to receive and display data from WhatWatt
 2. Restart Home Assistant
 
 ## Configuration
+
+### WhatWatt Go Setup
+
+Before using this integration, you need to configure your WhatWatt Go device to send data to your MQTT broker. See the [detailed configuration guide](custom_components/whatwatt/README.md#whatwatt-go-configuration) for step-by-step instructions.
+
+### Home Assistant Setup
 
 1. Make sure your WhatWatt Go device is configured to send data to your MQTT broker
 2. In Home Assistant, go to Settings > Devices & Services
@@ -82,4 +97,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Support
 
-For issues, feature requests, or questions, please open an issue on the [GitHub repository](https://github.com/vestiacom/whatwatt-home-asistance-integration/issues).
+For issues, feature requests, or questions, please open an issue on the [GitHub repository](https://github.com/whatwatt-ch/home-assistant-integration/issues).

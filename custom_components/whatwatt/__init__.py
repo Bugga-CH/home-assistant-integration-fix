@@ -13,6 +13,7 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.components import persistent_notification
 
 from .const import (
     DOMAIN,
@@ -44,6 +45,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Check if MQTT integration is set up
     if not hass.services.has_service("mqtt", "publish"):
         _LOGGER.error("MQTT integration is not set up")
+        
+        # Create a persistent notification to guide the user
+        persistent_notification.create(
+            hass,
+            "The WhatWatt integration requires MQTT to be set up. "
+            "Please go to Settings > Devices & Services > Add Integration > MQTT "
+            "to set up MQTT, then restart Home Assistant.",
+            title="WhatWatt - MQTT Required",
+            notification_id="whatwatt_mqtt_missing"
+        )
+        
         raise ConfigEntryNotReady("MQTT integration is not set up")
 
     # Store device info for use by platforms

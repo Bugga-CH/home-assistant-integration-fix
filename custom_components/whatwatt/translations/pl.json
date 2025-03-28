@@ -14,7 +14,8 @@
     "error": {
       "cannot_connect": "Nie udało się połączyć",
       "invalid_mqtt_topic": "Nieprawidłowy format tematu MQTT",
-      "invalid_ip": "Nieprawidłowy format adresu IP"
+      "invalid_ip": "Nieprawidłowy format adresu IP",
+      "mqtt_not_configured": "Integracja MQTT nie jest skonfigurowana. Proszę najpierw skonfigurować MQTT na {mqtt_config_url}"
     },
     "abort": {
       "already_configured": "Urządzenie jest już skonfigurowane"

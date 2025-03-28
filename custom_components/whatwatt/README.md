@@ -2,6 +2,17 @@
 
 Custom Home Assistant integration for WhatWatt Go devices that read data from electricity meters.
 
+![WhatWatt Logo](https://avatars.githubusercontent.com/u/201613898?s=200&v=4)
+
+## Requirements
+
+- **MQTT Integration**: This integration requires the MQTT integration to be set up in Home Assistant. If you don't have MQTT configured:
+  1. Go to Settings > Devices & Services > Add Integration
+  2. Search for "MQTT" and follow the setup instructions
+  3. If you're using Home Assistant OS, we recommend using the Mosquitto MQTT Broker add-on
+
+- **WhatWatt Go Device**: Your device must be configured to publish data to your MQTT broker
+
 ## Features
 
 - Connects to WhatWatt Go devices via MQTT
@@ -10,6 +21,45 @@ Custom Home Assistant integration for WhatWatt Go devices that read data from el
 - Tracks total energy consumption and generation
 - Provides easy access to the device's configuration page
 
+## WhatWatt Go Configuration
+
+Before setting up the integration in Home Assistant, you need to configure your WhatWatt Go device to send data to your MQTT broker:
+
+### Step 1: Access WebUI of WhatWatt Go
+
+Open your browser and enter the IP address of the WhatWatt GO device (e.g., http://192.168.1.100) into the address field.
+
+### Step 2: Configure MQTT Settings
+
+1. Navigate to MQTT Settings in the WebUI
+2. Enter the following details and activate MQTT:
+   - **Broker URL**: mqtt://<broker_address> (e.g., mqtt://192.168.1.101)
+   - **Username and Password**: Provide your MQTT broker credentials
+   - **Client ID**: whatwattGO (or any other unique identifier)
+   - **Topic**: energy/whatwatt/go (or any other topic structure)
+   - **Template**: Use the following JSON template (add/remove OBIS codes according to your needs):
+   
+```json
+{
+  "sys_id":"${sys.id}",
+  "meter_id":"${meter.id}",
+  "time":"${timestamp}",
+  "power_in":"${1_7_0}",
+  "power_out":"${2_7_0}",
+  "energy_in":"${1_8_0}",
+  "energy_out":"${2_8_0}",
+  "voltage_l1":"${32_7_0}",
+  "voltage_l2":"${52_7_0}",
+  "voltage_l3":"${72_7_0}"
+}
+```
+
+> Note: OBIS values delivered by your meter can be identified in WebUI > Live
+
+### Step 3: Set Reporting Period
+
+Navigate to WebUI > System and set the "Interval to Systems" to 30 seconds.
+
 ## Installation
 
 ### HACS (Home Assistant Community Store)
@@ -17,7 +67,7 @@ Custom Home Assistant integration for WhatWatt Go devices that read data from el
 1. Open HACS in your Home Assistant instance
 2. Go to "Integrations"
 3. Click the three dots in the top right corner and select "Custom repositories"
-4. Add the URL `https://github.com/vestiacom/whatwatt-home-asistance-integration` with category "Integration"
+4. Add the URL `https://github.com/whatwatt-ch/home-assistant-integration` with category "Integration"
 5. Click "Add"
 6. Search for "WhatWatt" in the integrations tab
 7. Click "Download"
@@ -25,18 +75,17 @@ Custom Home Assistant integration for WhatWatt Go devices that read data from el
 
 ### Manual Installation
 
-1. Download the latest release from the [GitHub repository](https://github.com/vestiacom/whatwatt-home-asistance-integration)
+1. Download the latest release from the [GitHub repository](https://github.com/whatwatt-ch/home-assistant-integration)
 2. Extract the `custom_components/whatwatt` folder to your Home Assistant's `custom_components` directory
 3. Restart Home Assistant
 
-## Configuration
+## Home Assistant Configuration
 
-1. Make sure your WhatWatt Go device is configured to send data to your MQTT broker
-2. In Home Assistant, go to Settings > Devices & Services
-3. Click "Add Integration" and search for "WhatWatt"
-4. Enter the MQTT topic that your WhatWatt Go device is publishing to
-5. Enter the IP address of your WhatWatt Go device (for accessing the configuration page)
-6. Optionally, provide a custom name for the device
+1. In Home Assistant, go to Settings > Devices & Services
+2. Click "Add Integration" and search for "WhatWatt"
+3. Enter the MQTT topic that your WhatWatt Go device is publishing to (the same topic you configured in the WhatWatt Go device)
+4. Enter the IP address of your WhatWatt Go device (for accessing the configuration page)
+5. Optionally, provide a custom name for the device
 
 ## Available Entities
 
@@ -96,4 +145,4 @@ The WhatWatt Go device sends data in the following JSON format:
 
 ## Support
 
-For issues, feature requests, or questions, please open an issue on the [GitHub repository](https://github.com/vestiacom/whatwatt-home-asistance-integration/issues).
+For issues, feature requests, or questions, please open an issue on the [GitHub repository](https://github.com/whatwatt-ch/home-assistant-integration/issues).

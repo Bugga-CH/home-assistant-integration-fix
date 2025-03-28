@@ -6,6 +6,7 @@ from homeassistant import config_entries
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.components import mqtt
 
 from .const import (
     DOMAIN,
@@ -23,6 +24,24 @@ class WhatWattConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(self, user_input=None):
         """Handle the initial step."""
         errors = {}
+
+        # Check if MQTT integration is set up
+        if not self.hass.services.has_service("mqtt", "publish"):
+            errors["base"] = "mqtt_not_configured"
+            return self.async_show_form(
+                step_id="user",
+                data_schema=vol.Schema(
+                    {
+                        vol.Required(CONF_MQTT_TOPIC): str,
+                        vol.Required(CONF_DEVICE_IP): str,
+                        vol.Optional("name", default=DEFAULT_NAME): str,
+                    }
+                ),
+                errors=errors,
+                description_placeholders={
+                    "mqtt_config_url": "/config/integrations/integration/mqtt"
+                }
+            )
 
         if user_input is not None:
             # Validate MQTT topic
