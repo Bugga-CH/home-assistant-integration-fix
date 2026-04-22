@@ -3,7 +3,7 @@
 DOMAIN = "whatwatt"
 
 # Configuration
-CONF_MQTT_TOPIC = "energy/whatwatt/go"
+CONF_MQTT_TOPIC = "mqtt-topic"
 CONF_DEVICE_IP = "device_ip"
 
 # Default values
