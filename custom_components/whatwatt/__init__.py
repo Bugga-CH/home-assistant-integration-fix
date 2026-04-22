@@ -32,7 +32,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up WhatWatt from a config entry."""
     mqtt_topic = entry.data[CONF_MQTT_TOPIC]
     device_ip = entry.data[CONF_DEVICE_IP]
-
+    return True
     # Check if MQTT integration is available
     if not hass.services.has_service("mqtt", "publish"):
         _LOGGER.error("WhatWatt: MQTT integration is not set up")
