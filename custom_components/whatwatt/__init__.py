@@ -83,8 +83,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         except Exception as ex:
             _LOGGER.error("WhatWatt: Error processing MQTT message: %s", ex)
 
-    unsubscribe = mqtt.async_subscribe(hass, mqtt_topic, message_received)
+    unsubscribe = await mqtt.async_subscribe(hass, mqtt_topic, message_received)
     hass.data[DOMAIN][entry.entry_id]["unsubscribe"] = unsubscribe
+    entry.async_on_unload(unsubscribe)
 
     _LOGGER.info(
         "WhatWatt integration set up. Listening on MQTT topic: %s", mqtt_topic
