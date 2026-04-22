@@ -1,15 +1,14 @@
 """Button platform for WhatWatt integration."""
 import logging
-import webbrowser
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Dict
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import EntityCategory
+from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, CONF_DEVICE_IP
+from .const import DOMAIN, CONF_DEVICE_IP, DEFAULT_NAME
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -21,9 +20,9 @@ async def async_setup_entry(
 ) -> None:
     """Set up the WhatWatt button."""
     device_ip = config_entry.data.get(CONF_DEVICE_IP)
-    device_info = hass.data[DOMAIN][config_entry.entry_id]["device_info"]
-    
-    async_add_entities([WhatWattConfigButton(device_ip, device_info)])
+    name = config_entry.data.get("name", DEFAULT_NAME)
+
+    async_add_entities([WhatWattConfigButton(config_entry.entry_id, device_ip, name)])
 
 
 class WhatWattConfigButton(ButtonEntity):
@@ -31,23 +30,30 @@ class WhatWattConfigButton(ButtonEntity):
 
     _attr_entity_category = EntityCategory.CONFIG
     _attr_icon = "mdi:cog"
-    
-    def __init__(self, device_ip: str, device_info: Dict[str, Any]) -> None:
+
+    def __init__(self, entry_id: str, device_ip: str, device_name: str) -> None:
         """Initialize the button entity."""
+        self._entry_id = entry_id
         self._device_ip = device_ip
-        self._device_info = device_info
-        self._attr_unique_id = f"{device_info['identifiers']}_config"
-        self._attr_name = f"{device_info['name']} Configuration"
-        self._attr_device_info = device_info
+        self._device_name = device_name
+
+        # No dependency on device_info — use entry_id as stable identifier
+        self._attr_unique_id = f"{entry_id}_config"
+        self._attr_name = f"{device_name} Configuration"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device info so the button appears under the same device as sensors."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._entry_id)},
+            name=self._device_name,
+            manufacturer="WhatWatt",
+            model="WhatWatt Go",
+            configuration_url=f"http://{self._device_ip}",
+        )
 
     def press(self) -> None:
-        """Handle the button press."""
-        _LOGGER.debug("Opening WhatWatt configuration page at http://%s", self._device_ip)
-        
-        # Open the configuration page in the default web browser
-        # Note: This will only work if Home Assistant is running on a system with a GUI
-        # For other systems, this will log an error but not crash
-        try:
-            webbrowser.open(f"http://{self._device_ip}")
-        except Exception as ex:
-            _LOGGER.error("Failed to open configuration page: %s", ex)
+        """Handle the button press — logs the config URL."""
+        _LOGGER.info(
+            "WhatWatt configuration page available at: http://%s", self._device_ip
+        )

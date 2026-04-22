@@ -1,7 +1,6 @@
 """Sensor platform for WhatWatt integration."""
 import logging
-import json
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -9,21 +8,11 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
-from homeassistant.util import slugify
 
 from .const import (
     DOMAIN,
-    ATTR_SYS_ID,
-    ATTR_METER_ID,
-    ATTR_TIME,
-    ATTR_POWER_IN,
-    ATTR_POWER_OUT,
-    ATTR_ENERGY_IN,
-    ATTR_ENERGY_OUT,
-    ATTR_VOLTAGE_L1,
-    ATTR_VOLTAGE_L2,
-    ATTR_VOLTAGE_L3,
     SENSOR_TYPES,
+    DEFAULT_NAME,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -35,20 +24,25 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the WhatWatt sensor platform."""
-    # Get the device info from the entry data
-    device_info = hass.data[DOMAIN][config_entry.entry_id]["device_info"]
-    
-    # Create sensors for each sensor type
+    entry_data = hass.data[DOMAIN][config_entry.entry_id]
+    name = config_entry.data.get("name", DEFAULT_NAME)
+    device_ip = entry_data["device_ip"]
+    mqtt_topic = entry_data["mqtt_topic"]
+
     sensors = []
-    for sensor_type in SENSOR_TYPES:
-        sensors.append(
-            WhatWattSensor(
-                device_info,
-                sensor_type,
-                SENSOR_TYPES[sensor_type],
-            )
+    for sensor_type, sensor_config in SENSOR_TYPES.items():
+        sensor = WhatWattSensor(
+            config_entry.entry_id,
+            name,
+            device_ip,
+            mqtt_topic,
+            sensor_type,
+            sensor_config,
         )
-    
+        sensors.append(sensor)
+        # Register sensor so __init__.py can push updates to it
+        entry_data["sensors"][sensor_type] = sensor
+
     async_add_entities(sensors)
 
 
@@ -57,25 +51,43 @@ class WhatWattSensor(SensorEntity):
 
     def __init__(
         self,
-        device_info: Dict[str, Any],
+        entry_id: str,
+        device_name: str,
+        device_ip: str,
+        mqtt_topic: str,
         sensor_type: str,
         sensor_config: Dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
-        self._device_info = device_info
+        self._entry_id = entry_id
+        self._device_name = device_name
+        self._device_ip = device_ip
+        self._mqtt_topic = mqtt_topic
         self._sensor_type = sensor_type
         self._sensor_config = sensor_config
         self._state = None
         self._available = False
-        
-        # Set entity attributes
-        self._attr_name = f"{device_info['name']} {sensor_config['name']}"
-        self._attr_unique_id = f"{device_info['identifiers']}_{sensor_type}"
-        self._attr_device_info = device_info
+        self._sys_id = None  # Will be set on first MQTT message
+
+        # Use entry_id as unique_id base until we get sys_id from MQTT
+        self._attr_name = f"{device_name} {sensor_config['name']}"
+        self._attr_unique_id = f"{entry_id}_{sensor_type}"
         self._attr_native_unit_of_measurement = sensor_config["unit"]
         self._attr_icon = sensor_config["icon"]
         self._attr_device_class = sensor_config["device_class"]
         self._attr_state_class = sensor_config["state_class"]
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device info. Uses sys_id once available, falls back to entry_id."""
+        identifier = self._sys_id if self._sys_id else self._entry_id
+        return DeviceInfo(
+            identifiers={(DOMAIN, identifier)},
+            name=self._device_name,
+            manufacturer="WhatWatt",
+            model="WhatWatt Go",
+            configuration_url=f"http://{self._device_ip}",
+        )
 
     @property
     def native_value(self) -> StateType:
@@ -88,21 +100,23 @@ class WhatWattSensor(SensorEntity):
         return self._available
 
     @callback
-    def handle_mqtt_message(self, message: Dict[str, Any]) -> None:
+    def handle_mqtt_message(self, payload: Dict[str, Any]) -> None:
         """Handle new MQTT messages."""
-        if self._sensor_type in message:
+        # Store sys_id for stable device_info identifiers
+        if self._sys_id is None and payload.get("sys_id"):
+            self._sys_id = payload["sys_id"]
+
+        if self._sensor_type in payload:
             try:
-                # Try to convert the value to float
-                self._state = float(message[self._sensor_type])
+                self._state = float(payload[self._sensor_type])
                 self._available = True
             except (ValueError, TypeError) as ex:
                 _LOGGER.error(
                     "Could not parse %s value %s: %s",
                     self._sensor_type,
-                    message[self._sensor_type],
+                    payload[self._sensor_type],
                     ex,
                 )
                 self._available = False
-            
-            # Schedule update
-            self.async_write_ha_state()
+
+        self.async_write_ha_state()
