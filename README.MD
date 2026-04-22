@@ -1,8 +1,25 @@
-# WhatWatt Home Assistant Integration
+# WhatWatt Home Assistant Integration (Community Fix Fork)
+
+> ⚠️ **Hinweis:** Dies ist ein inoffizieller Community-Fork des originalen Repositories von [whatwatt-ch](https://github.com/whatwatt-ch/home-assistant-integration).
+> Dieses Repository enthält Bugfixes für die Kompatibilität mit neueren Home Assistant Versionen.
+> **Alle Rechte am Original-Code liegen bei [WhatWatt](https://whatwatt.ch) / [whatwatt-ch](https://github.com/whatwatt-ch).** Dieses Fork steht in keiner offiziellen Verbindung mit WhatWatt.
+> Für offizielle Unterstützung bitte das [Original-Repository](https://github.com/whatwatt-ch/home-assistant-integration) verwenden.
 
 Custom Home Assistant integration for WhatWatt Go devices that read data from electricity meters via MQTT.
 
 ![WhatWatt Logo](https://avatars.githubusercontent.com/u/201613898?s=200&v=4)
+
+---
+
+## Was wurde in diesem Fork geändert?
+
+Das Original-Repository enthält Kompatibilitätsprobleme mit neueren Home Assistant Versionen (2024+):
+
+- `hass.components.mqtt` wurde in neueren HA-Versionen entfernt → ersetzt durch `from homeassistant.components import mqtt`
+- `device_info` wurde beim Start immer als `None` übergeben → Sensoren erschienen nie
+- `@callback` Funktion war fälschlicherweise als `async` deklariert
+
+Diese Fixes wurden eingereicht und sind dokumentiert. Sobald das Original-Repo gepatcht wird, empfiehlt es sich, wieder auf das offizielle Repository zu wechseln.
 
 ---
 
@@ -160,7 +177,20 @@ pip install paho-mqtt
 ## Lizenz
 
 MIT License — siehe LICENSE Datei.
+Der Original-Code steht unter der MIT-Lizenz von [whatwatt-ch](https://github.com/whatwatt-ch/home-assistant-integration). Dieses Fork übernimmt dieselbe Lizenz.
+
+---
+
+## Credits & Danksagung
+
+- **Original-Integration:** [whatwatt-ch/home-assistant-integration](https://github.com/whatwatt-ch/home-assistant-integration)
+- **Hersteller:** [WhatWatt AG, Schweiz](https://whatwatt.ch)
+- Dieses Fork existiert ausschliesslich um Kompatibilitätsprobleme mit neueren HA-Versionen zu beheben, bis die Fixes im offiziellen Repo übernommen werden.
+
+---
 
 ## Support
 
-Bei Problemen oder Fragen bitte ein Issue auf [GitHub](https://github.com/whatwatt-ch/home-assistant-integration/issues) eröffnen.
+Für Fragen zur **Hardware und offiziellen Integration** bitte das [originale GitHub Repository](https://github.com/whatwatt-ch/home-assistant-integration/issues) oder den [WhatWatt Support](https://whatwatt.ch/en/faq-and-support) kontaktieren.
+
+Für Fragen **spezifisch zu den Bugfixes in diesem Fork** kann hier ein Issue eröffnet werden.
